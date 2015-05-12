@@ -1,0 +1,49 @@
+This project, called "SceneSearch", is designed to search through a set of large documents for a set of scenes that match the query of a user. The code should ideally be downloaded onto a personal computer. Storing the search files in a folder within the directory that the code is stored in is recommended.
+
+[cover dependencies, especially "pickle"]
+
+
+***Adding Documents***
+In order to start searching for scenes within documents, one needs to first set up a framework for the app. This is accomplished when adding initial documents. The "add_doc.py" script is designed to not only store document information within an inverted index, but also to set up the initial document database for future processing.An inverted index is a data structure that matches every word present in an entire collection of documents, to the set of all locations of the word within that set of documents. For this app, the inverted index is created slightly differently. Every 300-word "snippet" is treated as its own document, and the only thing stored in the "posting" for every word-snippet pair is the frequency of the word in the snippet, as well as the snippet id, and the document name that the snippet was taken from.
+
+The "add_doc.py" script should be called from the shell (it was designed to work with .bash) in the following way:
+
+"python add_doc.py [path/to/docname.txt]"
+
+The file's path should thus be included as a command line argument to the script. Note that the input file is required to be presented in the .txt format. The "add_doc.py" script will not accept any file as a command line argument that does not have the ".txt" suffix.  This is to allow ease of processing for the python script. Today, due to the emergence of projects like the "Gutenberg" project, it should be easy to find several large books and other important documents online in the ".txt" format.
+
+This script serves to create important data that will be utilized by the rest of the app. If the app has not yet been initialized by calling this command, a directory called "data/" will be created, within which, several pieces of important data will be stored. Furthermore, the inverted index data structure will be created and stored in a compressed binary file called "data/iindex.pkl". Another important data structure is used to store a "backup" list of documents. This data structure will be stored in a file called "data/doc_list.pkl". This serves as an important backup file that is meant to verify what files should currently be stored in the database. Finally, the document will be split into 300-word "snippets" and stored in a directory called "data/splitdocs". For every file entered into the database, a file will be created called "data/splitdocs/docname_split.pkl"
+
+Furthermore, for every document added to the app's database, three important pieces of information will need to be stored: firstly, the document will need to be added to the inverted index data structure. Secondly, the file will need to be split into 300-word snippets, and the result will be stored as a list of 300-word strings, which will be compressed and saved in the file "data/splitdocs/docname_split.pkl". Thirdly, the document's name (sans the document path or ".txt" tag) will be added to a list of document names, which is stored in the file "data/doc_list.pkl".
+
+
+***Checking the integrity of the Database***
+Another command that can be run with this app is "debug.py". This makes sure that every document in the database has a file of snippets, as well as entries in the inverted index data structure, and an entry in the "doc_list" data structure. This script is run with the command:
+
+"python debug.py"
+
+When called, the script searches through every posting in the inverted index, and compiles a set of unique document names. It also searches through the directory of split files, to find all the names of the files whose snippets have been stored. Lastly, it reads the list data structure stored in the "doc_list.pkl" file. It makes sure all of these lists are identical. If they are not, then it will return a list of the files that are present in some parts of the database, but not others.
+It is recommended that this file be run before searches, and after removing files from the database, to ensure that will go wrong during the search, and that nothing went wrong when removing a document from the database.
+
+If a document is found to exist in some of these lists, but not others, then it is recommended to remove the file from the database, using "python rm_doc.py [docname]". This will remove the file from whatever data structures it is present in. If the document is desired in the database, then this command should be followed by "python add_doc [path/to/docname.txt]", to re-enter the file into the database.
+
+
+
+***Removing Documents From the Database***
+The script that removes files from the data structure is called "rm_doc.py". This script is called from .bash with the following command:
+
+"python rm_doc.py [docname]"
+
+Note that the command-line parameter "docname" that is added to the script should not include the ".txt" suffix of the file. More specifically, if the file is saved as "docname.txt", then the parameter that should be entered is "docname". As may be expected, this script will remove all postings of document "docname" from the inverted index, it will remove the "splitdoc/docname_split.pkl" file, which should contain a list of the document's 300-word snippets, and it will remove "docname" from the list of document names, which, again, is stored in "data/doc_list.pkl".
+
+It is recommended to run "python debug.py" after this command, to ensure that all of these changes were made without any errors.
+
+
+
+***Performing a Search***
+The script that searches the set of documents for a particular scene is called with the command:
+
+"python search.py 'terms of query' {-nr [number of results]}"
+
+Here, the latter part of the command, which starts with the "-nr" tag, is optional. If left unspecified, the default number of results returned will be 30. The maximum number of possible results that can be returned is 200. Before the search is run, it is recommended to verify the integrity of the data structures using the command: "python debug.py". The search works by finding the snippets with the highest scores for each individual term in the query. After the construction of this initial shortlist, each snippet in the shortlist is scored with relation to the entire query, and the results are sorted in order of descending score. If n results are requested of the app, then the top n results will be returned. For every returned result, the "docname" parameter is returned, along with the range of snippet ids present in the document. Unfortunately, since the inputs of these documents are .txt files, it is hard to specify the precise location of the search result. In order to make this process easier, the output is also written into a file called "search_results". A final script is provided to better package the output provided by the search.py file, using the stored output from the "search_results" file.
+
