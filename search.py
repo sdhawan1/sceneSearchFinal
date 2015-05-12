@@ -232,7 +232,7 @@ for s in snippets:
     ht_snip_score[s] = dp
 
 ###now, find clumps to include in the search as well.
-#res_clumps = find_clumps(ht_snip_scores)
+res_clumps = find_clumps(ht_snip_scores)
 
 #sort the results.
 res_snippets = sorted(res_snippets, key = itemgetter(1), reverse=True)
